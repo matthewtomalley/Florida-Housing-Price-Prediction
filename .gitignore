@@ -2,3 +2,4 @@ __pycache__
 .env
 .learn
 /files
+df_all.csv
