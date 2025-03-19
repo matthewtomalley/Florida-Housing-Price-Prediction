@@ -73,12 +73,12 @@ fireplace = st.selectbox("Fireplace:", options=y_n)
 fireplace = y_n_map[fireplace]
 
 # 30-year mortgate rate
-url = 'https://fred.stlouisfed.org/series/OBMMIFHA30YF'
+url = 'https://fred.stlouisfed.org/series/DGS10'
 response = requests.get(url)
 if response:
     soup = BeautifulSoup(response.text, 'html')
-m_rate = soup.find_all("span", class_="series-meta-observation-value")
-m_rate = float(m_rate[0].text) * 0.01
+t_rate = soup.find_all("span", class_="series-meta-observation-value")
+t_rate = float(t_rate[0].text) * 0.01
 
 # Creating a dataframe of the input
 data = pd.DataFrame([{
@@ -90,7 +90,7 @@ data = pd.DataFrame([{
     'longitude': longitude,
     'floorCount': floor_count,
     'lotSize': lot_size,
-    'm_rate': m_rate,
+    't_rate': t_rate,
     'cooling': cooling,
     'heating': heating,
     'fireplace': fireplace,
