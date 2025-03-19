@@ -6,6 +6,8 @@ import pandas as pd
 from pickle import load
 import streamlit as st
 import pgeocode
+import requests
+from bs4 import BeautifulSoup
 
 model = load(open('/workspaces/mds8-final-project-bmh/models/matt_test_xgb.sav', "rb"))
 
@@ -37,7 +39,7 @@ latitude = zip_info.latitude
 
 longitude = zip_info.longitude
 
-# Remaining values are straight input
+# Remaining inputs
 beds = [0,1,2,3,4,5,6,7,8,9,10]
 bedrooms = st.selectbox("Bedrooms:", options=beds)
 
@@ -70,7 +72,13 @@ heating = y_n_map[heating]
 fireplace = st.selectbox("Fireplace:", options=y_n)
 fireplace = y_n_map[fireplace]
 
-m_rate = 0.0678
+# 30-year mortgate rate
+url = 'https://fred.stlouisfed.org/series/OBMMIFHA30YF'
+response = requests.get(url)
+if response:
+    soup = BeautifulSoup(response.text, 'html')
+m_rate = soup.find_all("span", class_="series-meta-observation-value")
+m_rate = float(m_rate[0].text) * 0.01
 
 # Creating a dataframe of the input
 data = pd.DataFrame([{
