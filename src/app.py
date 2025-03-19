@@ -1,11 +1,10 @@
-from utils import db_connect
-engine = db_connect()
+# from utils import db_connect
+# engine = db_connect()
 
 # your code here
 import pandas as pd
 from pickle import load
 import streamlit as st
-from zipcodes import zip_codes
 import pgeocode
 
 model = load(open('/workspaces/mds8-final-project-bmh/models/matt_test_xgb.sav', "rb"))
@@ -19,7 +18,7 @@ property_types = ['Single Family','Condo','Townhouse','Mobile']
 property_type = st.selectbox("Property Type:", options=property_types)
 
 # City
-cities = ['Jacksonville','Miami','Orlando','Tampa','Naples','Ocala','Cape','Coral','Saint','Petersburg','Kissimmee','Fort Myers']
+cities = ['Jacksonville','Miami','Orlando','Tampa','Naples','Ocala','Cape Coral','Saint Petersburg','Kissimmee','Fort Myers']
 city = st.selectbox("City:", options=cities)
 
 # Generating zip codes for chosen city to put into selectbox
@@ -29,7 +28,7 @@ df = nomi._data
 city_zips = df[
     (df['place_name'] == city) & (df['state_code'] == 'FL')]['postal_code'].tolist()
 
-zip_code = st.selectbox("Location by Zip:", options=city_zips)
+zip_code = st.selectbox("Zip Code:", options=city_zips)
 
 # Getting approximate latitude and longitude from zip code
 zip_info = nomi.query_postal_code(zip_code)
@@ -39,9 +38,11 @@ latitude = zip_info.latitude
 longitude = zip_info.longitude
 
 # Remaining values are straight input
-beds_baths = [1,2,3,4,5,6,7,8,9,10]
-bedrooms = st.selectbox("Bedrooms:", options=beds_baths)
-bathrooms = st.selectbox("Bathrooms:", options=beds_baths)
+beds = [0,1,2,3,4,5,6,7,8,9,10]
+bedrooms = st.selectbox("Bedrooms:", options=beds)
+
+baths = [1,2,3,4,5,6,7,8,9,10]
+bathrooms = st.selectbox("Bathrooms:", options=baths)
 
 sq_footage = st.number_input("Square Footage:", value=1612, placeholder='Enter a number') # median from FRED
 lot_size = st.number_input("Lot Size in square feet (enter 0 for Condos):", value=10000, placeholder='Enter a number')
@@ -109,6 +110,3 @@ processed_data = processed_data.reindex(columns=model_cols, fill_value=0)
 if st.button("Predict Price"):
     prediction = str(round(model.predict(processed_data)[0]))
     st.write("Price in USD: $", prediction)
-
-
-
