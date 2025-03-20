@@ -2,4 +2,4 @@ numpy>=1.24.2
 pandas>=1.5.3
 requests>=2.27.1
 pgeocode
-streamlit >= 1.43.2
+streamlit>=1.43.2
