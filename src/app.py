@@ -9,7 +9,7 @@ import pgeocode
 import requests
 from bs4 import BeautifulSoup
 
-model = load(open('/workspaces/mds8-final-project-bmh/src/matt_test_xgb.sav', "rb"))
+model = load(open('matt_test_xgb.sav', "rb"))
 
 st.title("Buying a Home in Florida")
 
