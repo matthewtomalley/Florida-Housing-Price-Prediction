@@ -114,5 +114,5 @@ model_cols = load(open('model_columns.sav', "rb"))
 processed_data = processed_data.reindex(columns=model_cols, fill_value=0)
 
 if st.button("Predict Price"):
-    prediction = float(str(round(model.predict(processed_data)[0])))
+    prediction = round(model.predict(processed_data)[0])
     st.write(f"Price in USD: $ {prediction:,.2f}")
