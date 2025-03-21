@@ -1,7 +1,3 @@
-# from utils import db_connect
-# engine = db_connect()
-
-# your code here
 import pandas as pd
 from pickle import load
 import streamlit as st
@@ -118,5 +114,5 @@ model_cols = load(open('model_columns.sav', "rb"))
 processed_data = processed_data.reindex(columns=model_cols, fill_value=0)
 
 if st.button("Predict Price"):
-    prediction = str(round(model.predict(processed_data)[0]))
+    prediction = round(model.predict(processed_data)[0])
     st.write(f"Price in USD: $ {prediction:,.2f}")
