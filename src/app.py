@@ -9,7 +9,7 @@ import pgeocode
 import requests
 from bs4 import BeautifulSoup
 
-model = load(open('/workspaces/mds8-final-project-bmh/models/matt_test_xgb.sav', "rb"))
+model = load(open('matt_test_xgb.sav', "rb"))
 
 st.title("Buying a Home in Florida")
 
@@ -114,10 +114,9 @@ cat_data = pd.get_dummies(data[cat_var])
 processed_data = pd.concat([data[num_var], cat_data], axis=1)
 
 # Reindexing with original model columns
-model_cols = load(open('/workspaces/mds8-final-project-bmh/src/model_columns.sav', "rb"))
+model_cols = load(open('model_columns.sav', "rb"))
 processed_data = processed_data.reindex(columns=model_cols, fill_value=0)
 
 if st.button("Predict Price"):
     prediction = str(round(model.predict(processed_data)[0]))
     st.write("Price in USD: $", f'{prediction:,.2f}')
-
