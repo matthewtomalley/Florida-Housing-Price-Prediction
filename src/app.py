@@ -13,6 +13,16 @@ model = load(open('/workspaces/mds8-final-project-bmh/models/matt_test_xgb.sav',
 
 st.title("Buying a Home in Florida")
 
+# Treasury rate for the day
+url = 'https://fred.stlouisfed.org/series/DGS10'
+response = requests.get(url)
+if response:
+    soup = BeautifulSoup(response.text, 'html')
+t_rate = soup.find_all("span", class_="series-meta-observation-value")
+t_rate = float(t_rate[0].text) * 0.01
+
+st.write("Predictions based on today's Treasury rate of: ", t_rate)
+
 # Inputs with necessary transformations
 
 # Property type
@@ -72,14 +82,6 @@ heating = y_n_map[heating]
 fireplace = st.selectbox("Fireplace:", options=y_n)
 fireplace = y_n_map[fireplace]
 
-# 30-year mortgate rate
-url = 'https://fred.stlouisfed.org/series/DGS10'
-response = requests.get(url)
-if response:
-    soup = BeautifulSoup(response.text, 'html')
-t_rate = soup.find_all("span", class_="series-meta-observation-value")
-t_rate = float(t_rate[0].text) * 0.01
-
 # Creating a dataframe of the input
 data = pd.DataFrame([{
     'bedrooms': bedrooms,
@@ -117,6 +119,5 @@ processed_data = processed_data.reindex(columns=model_cols, fill_value=0)
 
 if st.button("Predict Price"):
     prediction = str(round(model.predict(processed_data)[0]))
-    st.write("Price in USD: $", prediction)
-=======
-# final_project
+    st.write("Price in USD: $", f'{prediction:,.2f}')
+
