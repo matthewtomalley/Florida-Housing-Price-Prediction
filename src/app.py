@@ -48,10 +48,10 @@ zip_county_dict = load(open('zip_county_dict.sav', "rb"))
 county = zip_county_dict.get(zip_code)
 
 # Remaining inputs
-beds = [0,1,2,3,4,5,6,7,8,9,10]
+beds = [0,1,2,3,4,5]
 bedrooms = st.selectbox("Bedrooms:", options=beds)
 
-baths = [1,2,3,4,5,6,7,8,9,10]
+baths = [1,2,3,4,5]
 bathrooms = st.selectbox("Bathrooms:", options=baths)
 
 sq_footage = st.number_input("Square Footage:", value=1612, placeholder='Enter a number') # median from FRED
@@ -60,7 +60,7 @@ lot_size = st.number_input("Lot Size in square feet (enter 0 for Condos):", valu
 floors = [1, 2, 3, 4]
 floor_count = st.selectbox("Floor Count", options=floors)
 
-year_built = st.number_input("Year Built", value=2024, placeholder='Enter a number from 1920 to the present:')
+year_built = st.number_input("Year Built (1980 to 2025):", value=2024, placeholder='Enter a number from 1920 to the present:')
 years_old = 2025 - year_built
 
 y_n = ['yes','no']
@@ -107,10 +107,6 @@ data = pd.DataFrame([{
     'propertyType': property_type
 }])
 
-# Preparing variables for processing
-# cat_var = ['propertyType','zipCode']
-# num_var = ['latitude','longitude','bedrooms','bathrooms','squareFootage','floorCount','lotSize','yearBuilt','pool','garage','cooling','heating','fireplace']
-
 num_var = data.select_dtypes(include=['int64', 'float64']).columns.tolist()
 cat_var = data.select_dtypes(include='object').columns.tolist()
 
@@ -121,7 +117,6 @@ processed_data = pd.concat([data[num_var], cat_data], axis=1)
 # Reindexing with original model columns
 model_cols = load(open('model_columns.sav', "rb"))
 processed_data = processed_data.reindex(columns=model_cols, fill_value=0)
-
 
 # Sending input through model
 prediction = None
