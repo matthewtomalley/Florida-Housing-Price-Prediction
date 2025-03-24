@@ -5,7 +5,7 @@ import pgeocode
 import requests
 from bs4 import BeautifulSoup
 
-model = load(open('matt_test_xgb.sav', "rb"))
+model = load(open('matt_xgbr_opt.sav', "rb"))
 
 st.title("Buying a Home in Florida")
 
@@ -26,24 +26,26 @@ property_types = ['Single Family','Condo','Townhouse','Mobile']
 property_type = st.selectbox("Property Type:", options=property_types)
 
 # City
-cities = ['Jacksonville','Miami','Orlando','Tampa','Naples','Ocala','Cape Coral','Saint Petersburg','Kissimmee','Fort Myers']
+cities = load(open('model_cities.sav', "rb"))
 city = st.selectbox("City:", options=cities)
 
 # Generating zip codes for chosen city to put into selectbox
 nomi = pgeocode.Nominatim('US')
 df = nomi._data
 
-city_zips = df[
-    (df['place_name'] == city) & (df['state_code'] == 'FL')]['postal_code'].tolist()
-
+city_zip_dict = load(open('city_zip_dict.sav', "rb"))
+city_zips = city_zip_dict.get(city, [])
 zip_code = st.selectbox("Zip Code:", options=city_zips)
 
 # Getting approximate latitude and longitude from zip code
 zip_info = nomi.query_postal_code(zip_code)
-
 latitude = zip_info.latitude
-
 longitude = zip_info.longitude
+
+# Getting county from zip code
+
+zip_county_dict = load(open('zip_county_dict.sav', "rb"))
+county = zip_county_dict.get(zip_code)
 
 # Remaining inputs
 beds = [0,1,2,3,4,5,6,7,8,9,10]
@@ -59,6 +61,7 @@ floors = [1, 2, 3, 4]
 floor_count = st.selectbox("Floor Count", options=floors)
 
 year_built = st.number_input("Year Built", value=2024, placeholder='Enter a number from 1920 to the present:')
+years_old = 2025 - year_built
 
 y_n = ['yes','no']
 y_n_map = {'yes':1,'no':0}
@@ -68,6 +71,9 @@ pool = y_n_map[pool]
 
 garage = st.selectbox("Garage:", options=y_n)
 garage = y_n_map[garage]
+
+spaces_num = [1,2,3,4,5,6]
+garage_spaces = garage = st.selectbox("Number of garage spaces:", options=spaces_num)
 
 cooling = st.selectbox("Cooling:", options=y_n)
 cooling = y_n_map[cooling]
@@ -80,30 +86,33 @@ fireplace = y_n_map[fireplace]
 
 # Creating a dataframe of the input
 data = pd.DataFrame([{
+    'latitude': latitude,
+    'longitude': longitude,
     'bedrooms': bedrooms,
     'bathrooms': bathrooms,
     'squareFootage': sq_footage,
-    'pool': pool,
-    'latitude': latitude,
-    'longitude': longitude,
-    'floorCount': floor_count,
     'lotSize': lot_size,
-    't_rate': t_rate,
+    'floorCount': floor_count,
+    'years_old': years_old,
+    'pool': pool,
     'cooling': cooling,
     'heating': heating,
     'fireplace': fireplace,
-    'yearBuilt': year_built,
     'garage': garage,
-    'propertyType': property_type,
-    'zipCode': zip_code
+    'garageSpaces': garage_spaces,
+    't_rate': t_rate,
+    'city':city,
+    'zipCode': zip_code,
+    'county':county,
+    'propertyType': property_type
 }])
 
-# Sending input through model
-prediction = None
-
 # Preparing variables for processing
-cat_var = ['propertyType','zipCode']
-num_var = ['latitude','longitude','bedrooms','bathrooms','squareFootage','floorCount','lotSize','yearBuilt','pool','garage','cooling','heating','fireplace']
+# cat_var = ['propertyType','zipCode']
+# num_var = ['latitude','longitude','bedrooms','bathrooms','squareFootage','floorCount','lotSize','yearBuilt','pool','garage','cooling','heating','fireplace']
+
+num_var = data.select_dtypes(include=['int64', 'float64']).columns.tolist()
+cat_var = data.select_dtypes(include='object').columns.tolist()
 
 # Getting dummies
 cat_data = pd.get_dummies(data[cat_var])
@@ -113,6 +122,9 @@ processed_data = pd.concat([data[num_var], cat_data], axis=1)
 model_cols = load(open('model_columns.sav', "rb"))
 processed_data = processed_data.reindex(columns=model_cols, fill_value=0)
 
+
+# Sending input through model
+prediction = None
 if st.button("Predict Price"):
     prediction = round(model.predict(processed_data)[0])
     st.write(f"Price in USD: $ {prediction:,.2f}")
