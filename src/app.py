@@ -13,7 +13,7 @@ st.title("Buying a Home in Florida")
 url = 'https://fred.stlouisfed.org/series/DGS10'
 response = requests.get(url)
 if response:
-    soup = BeautifulSoup(response.text, 'html')
+    soup = BeautifulSoup(response.text, features='html.parser')
 t_rate = soup.find_all("span", class_="series-meta-observation-value")
 t_rate = float(t_rate[0].text) * 0.01
 
