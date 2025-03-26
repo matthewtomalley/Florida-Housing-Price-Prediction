@@ -7,35 +7,83 @@ from bs4 import BeautifulSoup
 
 model = load(open('matt_xgbr_opt.sav', "rb"))
 
-st.title("Buying a Home in Florida")
+st.title("Your Florida Home")
+st.write("Predict the price of your customized home in Florida's most-desired real estate markets")
 
 # Treasury rate for the day
-url = 'https://fred.stlouisfed.org/series/DGS10'
-response = requests.get(url)
-if response:
-    soup = BeautifulSoup(response.text, features='html.parser')
-t_rate = soup.find_all("span", class_="series-meta-observation-value")
-t_rate = float(t_rate[0].text) * 0.01
+try:
+
+    url = 'https://fred.stlouisfed.org/series/DGS10'
+    response = requests.get(url)
+    if response:
+        soup = BeautifulSoup(response.text, features='html.parser')
+    t_rate = soup.find_all("span", class_="series-meta-observation-value")
+    t_rate = float(t_rate[0].text) * 0.01
+except Exception as e:
+    st.error(f"Error fetching treasury rate: {e}")
+    t_rate = 0.04
 
 st.write("Predictions based on today's Treasury rate of: ", t_rate)
 
 # Inputs with necessary transformations
 
-# Property type
-property_types = ['Single Family','Condo','Townhouse','Mobile']
-property_type = st.selectbox("Property Type:", options=property_types)
+col1, col2 = st.columns(2, border=True)
 
-# City
-cities = load(open('model_cities.sav', "rb"))
-city = st.selectbox("City:", options=cities)
+with col1:
 
-# Generating zip codes for chosen city to put into selectbox
-nomi = pgeocode.Nominatim('US')
-df = nomi._data
+    # Property type
+    property_types = ['Single Family','Condo','Townhouse','Mobile']
+    property_type = st.selectbox("Property Type:", options=property_types)
 
-city_zip_dict = load(open('city_zip_dict.sav', "rb"))
-city_zips = city_zip_dict.get(city, [])
-zip_code = st.selectbox("Zip Code:", options=city_zips)
+    # City
+    cities = load(open('model_cities.sav', "rb"))
+    city = st.selectbox("City:", options=cities)
+
+    # Generating zip codes for chosen city to put into selectbox
+    nomi = pgeocode.Nominatim('US')
+    df = nomi._data
+
+    city_zip_dict = load(open('city_zip_dict.sav', "rb"))
+    city_zips = city_zip_dict.get(city, [])
+    zip_code = st.selectbox("Zip Code:", options=city_zips)
+
+    beds = [0,1,2,3,4,5]
+    bedrooms = st.selectbox("Bedrooms:", options=beds)
+
+    baths = [1,2,3,4,5]
+    bathrooms = st.selectbox("Bathrooms:", options=baths)
+
+    sq_footage = st.number_input("Square Footage:", value=1612, placeholder='Enter a number') # median from FRED
+    lot_size = st.number_input("Lot Size in square feet (enter 0 for Condos):", value=10000, placeholder='Enter a number')
+
+    floors = [1, 2, 3, 4]
+    floor_count = st.selectbox("Floor Count", options=floors)
+
+with col2:
+
+    year_built = st.number_input("Year Built (1980 to 2025):", value=2024, placeholder='Enter a number from 1920 to the present:')
+    years_old = 2025 - year_built
+
+    y_n = ['yes','no']
+    y_n_map = {'yes':1,'no':0}
+
+    pool = st.selectbox("Pool:", options=y_n)
+    pool = y_n_map[pool]
+
+    garage = st.selectbox("Garage:", options=y_n)
+    garage = y_n_map[garage]
+
+    spaces_num = [1,2,3,4,5,6]
+    garage_spaces = st.selectbox("Number of garage spaces:", options=spaces_num)
+
+    cooling = st.selectbox("Cooling:", options=y_n)
+    cooling = y_n_map[cooling]
+
+    heating = st.selectbox("Heating:", options=y_n)
+    heating = y_n_map[heating]
+
+    fireplace = st.selectbox("Fireplace:", options=y_n)
+    fireplace = y_n_map[fireplace]
 
 # Getting approximate latitude and longitude from zip code
 zip_info = nomi.query_postal_code(zip_code)
@@ -46,43 +94,6 @@ longitude = zip_info.longitude
 
 zip_county_dict = load(open('zip_county_dict.sav', "rb"))
 county = zip_county_dict.get(zip_code)
-
-# Remaining inputs
-beds = [0,1,2,3,4,5]
-bedrooms = st.selectbox("Bedrooms:", options=beds)
-
-baths = [1,2,3,4,5]
-bathrooms = st.selectbox("Bathrooms:", options=baths)
-
-sq_footage = st.number_input("Square Footage:", value=1612, placeholder='Enter a number') # median from FRED
-lot_size = st.number_input("Lot Size in square feet (enter 0 for Condos):", value=10000, placeholder='Enter a number')
-
-floors = [1, 2, 3, 4]
-floor_count = st.selectbox("Floor Count", options=floors)
-
-year_built = st.number_input("Year Built (1980 to 2025):", value=2024, placeholder='Enter a number from 1920 to the present:')
-years_old = 2025 - year_built
-
-y_n = ['yes','no']
-y_n_map = {'yes':1,'no':0}
-
-pool = st.selectbox("Pool:", options=y_n)
-pool = y_n_map[pool]
-
-garage = st.selectbox("Garage:", options=y_n)
-garage = y_n_map[garage]
-
-spaces_num = [1,2,3,4,5,6]
-garage_spaces = garage = st.selectbox("Number of garage spaces:", options=spaces_num)
-
-cooling = st.selectbox("Cooling:", options=y_n)
-cooling = y_n_map[cooling]
-
-heating = st.selectbox("Heating:", options=y_n)
-heating = y_n_map[heating]
-
-fireplace = st.selectbox("Fireplace:", options=y_n)
-fireplace = y_n_map[fireplace]
 
 # Creating a dataframe of the input
 data = pd.DataFrame([{
