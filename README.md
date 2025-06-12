@@ -23,7 +23,7 @@ To run the application, execute the app.py script from the src folder of the pro
 ```bash
 streamlit run app.py
 ```
-## Link to the dedicated website for this project:
+## Link to the live web app:
 
 [Your Florida Home](https://mds8-final-project-bmh.onrender.com/)
 
